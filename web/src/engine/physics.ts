@@ -36,7 +36,7 @@ export function safetyMargin(available: number, required: number): number {
 export const maxLateralAcceleration = (mu: number, g: number, fdf: number, m: number): number => mu * (g + fdf / m);
 
 /** Critical radius r* = m / (mu k), m. */
-export const criticalRadius = (m: number, mu: number, k: number): number => (k <= 0 ? Infinity : m / (mu * k));
+export const criticalRadius = (m: number, mu: number, k: number): number => (mu * k <= 0 ? Infinity : m / (mu * k));
 
 /** Grip-limited cornering speed, m/s (Infinity when r >= r*). */
 export function maxCorneringSpeed(m: number, r: number, mu: number, g: number, k: number): number {

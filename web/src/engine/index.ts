@@ -5,3 +5,6 @@ export * from "./scoring";
 export * from "./baselines";
 export * from "./explain";
 export { fsum } from "./fsum";
+export * from "./montecarlo";
+export * from "./cfd";
+export * from "./golden";

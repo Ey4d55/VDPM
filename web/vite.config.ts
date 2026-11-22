@@ -6,6 +6,8 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   base: "./",
   plugins: [react()],
-  build: { target: "es2022", sourcemap: true },
+  build: { target: "es2022", sourcemap: true, chunkSizeWarningLimit: 1200 },
+  // The app imports the shared golden cases and research summary from the repository root.
+  server: { fs: { allow: [".."] } },
   test: { environment: "node", include: ["src/**/*.test.ts"] },
 });

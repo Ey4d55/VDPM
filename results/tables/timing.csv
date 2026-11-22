@@ -1,5 +1,5 @@
 task,median_us,q1_us,q3_us,repeats,calls_per_repeat
-"one setup, one corner (evaluate_corner)",2.833,2.805,2.871,15,2000
-rank 2 setups on Circuit C (18 corners),146.758,145.208,149.585,15,200
-rank 10 setups on Circuit C (18 corners),680.732,678.495,682.461,15,40
-rank 50 setups on Circuit C (18 corners),3368.198,3344.249,3756.802,15,8
+"one setup, one corner (evaluate_corner)",2.808,2.787,2.830,15,2000
+rank 2 setups on Circuit C (18 corners),144.968,144.381,145.461,15,200
+rank 10 setups on Circuit C (18 corners),664.215,662.387,804.794,15,40
+rank 50 setups on Circuit C (18 corners),3934.460,3863.450,3993.044,15,8

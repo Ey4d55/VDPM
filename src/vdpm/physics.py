@@ -127,11 +127,13 @@ def critical_radius(mass: float, friction: float, k: float) -> float:
     """Critical radius ``r* = m / (mu k)``, m.
 
     For ``r >= r*`` the simplified model has no grip-limited cornering speed.
-    Returns ``inf`` for a setup without downforce.
+    Returns ``inf`` for a setup without downforce, including a downforce so
+    small that ``mu k`` underflows to zero.
     """
-    if k <= 0:
+    muk = friction * k
+    if muk <= 0:
         return math.inf
-    return mass / (friction * k)
+    return mass / muk
 
 
 def max_cornering_speed(

@@ -80,7 +80,7 @@ export function syntheticCircuit(summary: CircuitSummary, lateralAcceleration = 
     provenance:
       "Synthetic layout matching the summary statistics of Fig. 5b (length, turns, straight ratio, mean corner " +
       "radius). Segment radii, lengths and speeds are modelling assumptions, not measured track data. " +
-      `Corner speeds use a_ref = ${lateralAcceleration.toFixed(3)} m/s^2.`,
+      `Corner speeds use a_ref = ${lateralAcceleration.toFixed(2)} m/s².`,
     metadata: {
       key: summary.key,
       character: summary.character,

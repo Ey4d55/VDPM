@@ -14,7 +14,8 @@ masses = st.floats(500, 1200)
 areas = st.floats(0.8, 2.5)
 frictions = st.floats(0.6, 2.2)
 cds = st.floats(0.3, 2.0)
-cdfs = st.floats(0.0, 6.0)
+# Subnormal coefficients are not physical and only probe floating-point underflow.
+cdfs = st.floats(0.0, 6.0, allow_subnormal=False)
 speeds = st.floats(5.0, 110.0)
 radii = st.floats(10.0, 800.0)
 densities = st.floats(0.9, 1.4)
@@ -79,7 +80,8 @@ def test_thresholds_put_the_corner_exactly_on_the_limit(m, a, mu, cd, cdf, v, r,
         assert at_cdf.margin == pytest.approx(0.0, abs=1e-9)
     else:
         assert evaluate_corner(vehicle, AeroSetup("y", cd, 0.0), v, r, env).feasible
-    if 0 < res.max_mass < math.inf:
+    # A mass limit below 1 kg means downforce is negligible; the check is then ill-conditioned.
+    if 1.0 < res.max_mass < math.inf:
         at_m = evaluate_corner(Vehicle(res.max_mass, a, mu), setup, v, r, env)
         assert at_m.margin == pytest.approx(0.0, abs=1e-9)
 
@@ -138,3 +140,10 @@ def test_invalid_state_is_rejected(vehicle, env, bad):
 def test_invalid_models_are_rejected(factory):
     with pytest.raises(ValueError):
         factory()
+
+
+def test_negligible_downforce_has_no_critical_radius(vehicle, env):
+    """A downforce coefficient so small that mu * k underflows must not divide by zero."""
+    res = evaluate_corner(vehicle, AeroSetup("tiny", 1.0, 5e-324), 5.0, 10.0, env)
+    assert res.critical_radius == math.inf
+    assert res.grip_limited

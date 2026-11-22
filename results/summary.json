@@ -6,7 +6,15 @@
     "table2_all_within_printed_resolution": true,
     "max_rel_error_vs_hand_calculation": 1.249906825771907e-16,
     "golden_corner_cases": 400,
-    "golden_circuit_cases": 72
+    "golden_circuit_cases": 72,
+    "browser_engine": {
+      "values_compared": 29080,
+      "max_relative_error": 0.0,
+      "worst_path": "corner_cases[0].input.vehicle.mass",
+      "mismatches": 0,
+      "tolerance": 1e-12,
+      "passed": true
+    }
   },
   "timing": {
     "environment": {
@@ -19,33 +27,33 @@
     "results": [
       {
         "task": "one setup, one corner (evaluate_corner)",
-        "median_us": 2.8329805,
-        "q1_us": 2.8048314999999997,
-        "q3_us": 2.8708565,
+        "median_us": 2.807906,
+        "q1_us": 2.7870695,
+        "q3_us": 2.830133,
         "repeats": 15,
         "calls_per_repeat": 2000
       },
       {
         "task": "rank 2 setups on Circuit C (18 corners)",
-        "median_us": 146.75831,
-        "q1_us": 145.207695,
-        "q3_us": 149.58459,
+        "median_us": 144.96773000000002,
+        "q1_us": 144.38092,
+        "q3_us": 145.460715,
         "repeats": 15,
         "calls_per_repeat": 200
       },
       {
         "task": "rank 10 setups on Circuit C (18 corners)",
-        "median_us": 680.732025,
-        "q1_us": 678.49525,
-        "q3_us": 682.4612,
+        "median_us": 664.2147249999999,
+        "q1_us": 662.387025,
+        "q3_us": 804.7939250000001,
         "repeats": 15,
         "calls_per_repeat": 40
       },
       {
         "task": "rank 50 setups on Circuit C (18 corners)",
-        "median_us": 3368.198125,
-        "q1_us": 3344.24925,
-        "q3_us": 3756.802375,
+        "median_us": 3934.459625,
+        "q1_us": 3863.45025,
+        "q3_us": 3993.04375,
         "repeats": 15,
         "calls_per_repeat": 8
       }
@@ -467,5 +475,5 @@
     },
     "share_no_setup_eligible": 0.11522633744855967
   },
-  "runtime_s": 16.066585614000132
+  "runtime_s": 15.452659551000124
 }

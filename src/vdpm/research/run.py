@@ -5,6 +5,7 @@ from __future__ import annotations
 import csv
 import json
 import math
+import tempfile
 import time
 from collections.abc import Iterable, Sequence
 from dataclasses import asdict
@@ -97,9 +98,11 @@ def run_all(
         "golden_circuit_cases": len(golden["circuit_cases"]),
     }
     if browser_engine_output:
-        golden_path = out / "golden_reference.json"
-        golden_path.write_text(json.dumps(golden, allow_nan=False), encoding="utf-8")
-        cmp = compare_engines(golden_path, browser_engine_output)
+        # Compare against freshly generated reference cases, kept out of the results folder.
+        with tempfile.TemporaryDirectory() as tmp:
+            golden_path = Path(tmp) / "golden_reference.json"
+            golden_path.write_text(json.dumps(golden, allow_nan=False), encoding="utf-8")
+            cmp = compare_engines(golden_path, browser_engine_output)
         summary["verification"]["browser_engine"] = asdict(cmp) | {"passed": cmp.passed}
 
     # 2. Timing -----------------------------------------------------------------
@@ -322,7 +325,7 @@ def _report(s: dict[str, Any]) -> str:
     if "browser_engine" in v:
         b = v["browser_engine"]
         lines.append(
-            f"- Browser engine: {b['values_compared']} values compared, maximum relative error "
+            f"- Browser engine: {b['values_compared']:,} values compared, maximum relative error "
             f"{b['max_relative_error']:.2e}, mismatches above {b['tolerance']:.0e}: {b['mismatches']}."
         )
     env = s["timing"]["environment"]
