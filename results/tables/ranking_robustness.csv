@@ -1,0 +1,22 @@
+circuit,parameter,baseline_best,decrease_that_changes_best,outcome_after_decrease,increase_that_changes_best,outcome_after_increase
+Circuit A,friction,Setup A,-0.4025,Setup B,,
+Circuit A,mass,Setup A,,,,
+Circuit A,air_density,Setup A,,,,
+Circuit A,reference_area,Setup A,,,,
+Circuit A,drag_coefficient,Setup A,,,,
+Circuit A,downforce_coefficient,Setup A,,,,
+Circuit A,lateral_acceleration,Setup A,,,,
+Circuit B,friction,Setup A,-0.3025,Setup B,,
+Circuit B,mass,Setup A,-0.2625,Setup B,,
+Circuit B,air_density,Setup A,,,0.355,Setup B
+Circuit B,reference_area,Setup A,,,0.355,Setup B
+Circuit B,drag_coefficient,Setup A,,,,
+Circuit B,downforce_coefficient,Setup A,,,0.355,Setup B
+Circuit B,lateral_acceleration,Setup A,,,0.355,Setup B
+Circuit C,friction,Setup B,-0.2575,none eligible,,
+Circuit C,mass,Setup B,,,,
+Circuit C,air_density,Setup B,-0.44,Setup A,,
+Circuit C,reference_area,Setup B,-0.44,Setup A,,
+Circuit C,drag_coefficient,Setup B,,,,
+Circuit C,downforce_coefficient,Setup B,-0.44,Setup A,,
+Circuit C,lateral_acceleration,Setup B,-0.44,Setup A,,

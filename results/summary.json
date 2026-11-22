@@ -1,0 +1,471 @@
+{
+  "vdpm_version": "0.1.0",
+  "seed": 20261122,
+  "verification": {
+    "table2_values": 10,
+    "table2_all_within_printed_resolution": true,
+    "max_rel_error_vs_hand_calculation": 1.249906825771907e-16,
+    "golden_corner_cases": 400,
+    "golden_circuit_cases": 72
+  },
+  "timing": {
+    "environment": {
+      "python": "3.13.18",
+      "implementation": "CPython",
+      "machine": "x86_64",
+      "processor": "x86_64",
+      "system": "Linux 6.18.44-fc-v726"
+    },
+    "results": [
+      {
+        "task": "one setup, one corner (evaluate_corner)",
+        "median_us": 2.8329805,
+        "q1_us": 2.8048314999999997,
+        "q3_us": 2.8708565,
+        "repeats": 15,
+        "calls_per_repeat": 2000
+      },
+      {
+        "task": "rank 2 setups on Circuit C (18 corners)",
+        "median_us": 146.75831,
+        "q1_us": 145.207695,
+        "q3_us": 149.58459,
+        "repeats": 15,
+        "calls_per_repeat": 200
+      },
+      {
+        "task": "rank 10 setups on Circuit C (18 corners)",
+        "median_us": 680.732025,
+        "q1_us": 678.49525,
+        "q3_us": 682.4612,
+        "repeats": 15,
+        "calls_per_repeat": 40
+      },
+      {
+        "task": "rank 50 setups on Circuit C (18 corners)",
+        "median_us": 3368.198125,
+        "q1_us": 3344.24925,
+        "q3_us": 3756.802375,
+        "repeats": 15,
+        "calls_per_repeat": 8
+      }
+    ]
+  },
+  "figures": {
+    "fig_sensitivity_tornado": "One-at-a-time sensitivity of the safety margin at the case-study corner (v = 30 m/s, r = 60 m, Table 1) to a 10 % decrease (grey) or increase (colour) of each input. The dashed line marks the feasibility limit M = 0.",
+    "fig_monte_carlo": "Monte Carlo analysis, 5000 samples per circuit and panel (seed 20261122). (a) Share of samples in which each setup is recommended, with uniform multiplicative uncertainty friction +/-10%, mass +/-2%, air_density +/-5%, reference_area +/-2%, drag_coefficient +/-5%, downforce_coefficient +/-5%, lateral_acceleration +/-10% around the reference inputs. (b) Corner demand a_ref drawn uniformly from 10 to 30 m/s^2 with the same uncertainty on the other inputs: share of samples in which each unconstrained ranking recommends a setup that fails at least one corner although a feasible setup existed, which the gated VDPM ranking recommends instead. Samples in which no setup was feasible are excluded from this count. Error bars: 95 % Wilson intervals.",
+    "fig_demand_sweep": "Minimum safety margin over all corners of each synthetic reference circuit as the corner demand a_ref (v^2 / r at every corner) increases. Red: the drag-only ranking recommends a setup that fails at least one corner while a feasible setup exists, which the gated VDPM ranking recommends instead. Grey: no setup is feasible and VDPM makes no recommendation.",
+    "fig_model_curves": "Curves computed from Eqs. 4.1 to 4.5 with the inputs of Table 1 (m = 800 kg, A = 1.5 m^2, rho = 1.225 kg/m^3, mu = 1.5, g = 9.81 m/s^2). (b) Beyond the critical radius r* the simplified model sets no grip-limited speed. (c) At fixed radius the margin falls with speed because demand grows with v^2 while only the aerodynamic part of the grip does."
+  },
+  "robustness": [
+    {
+      "circuit": "Circuit A",
+      "parameter": "friction",
+      "baseline_best": "Setup A",
+      "lower_change": -0.4025,
+      "lower_outcome": "Setup B",
+      "upper_change": null,
+      "upper_outcome": null
+    },
+    {
+      "circuit": "Circuit A",
+      "parameter": "mass",
+      "baseline_best": "Setup A",
+      "lower_change": null,
+      "lower_outcome": null,
+      "upper_change": null,
+      "upper_outcome": null
+    },
+    {
+      "circuit": "Circuit A",
+      "parameter": "air_density",
+      "baseline_best": "Setup A",
+      "lower_change": null,
+      "lower_outcome": null,
+      "upper_change": null,
+      "upper_outcome": null
+    },
+    {
+      "circuit": "Circuit A",
+      "parameter": "reference_area",
+      "baseline_best": "Setup A",
+      "lower_change": null,
+      "lower_outcome": null,
+      "upper_change": null,
+      "upper_outcome": null
+    },
+    {
+      "circuit": "Circuit A",
+      "parameter": "drag_coefficient",
+      "baseline_best": "Setup A",
+      "lower_change": null,
+      "lower_outcome": null,
+      "upper_change": null,
+      "upper_outcome": null
+    },
+    {
+      "circuit": "Circuit A",
+      "parameter": "downforce_coefficient",
+      "baseline_best": "Setup A",
+      "lower_change": null,
+      "lower_outcome": null,
+      "upper_change": null,
+      "upper_outcome": null
+    },
+    {
+      "circuit": "Circuit A",
+      "parameter": "lateral_acceleration",
+      "baseline_best": "Setup A",
+      "lower_change": null,
+      "lower_outcome": null,
+      "upper_change": null,
+      "upper_outcome": null
+    },
+    {
+      "circuit": "Circuit B",
+      "parameter": "friction",
+      "baseline_best": "Setup A",
+      "lower_change": -0.3025,
+      "lower_outcome": "Setup B",
+      "upper_change": null,
+      "upper_outcome": null
+    },
+    {
+      "circuit": "Circuit B",
+      "parameter": "mass",
+      "baseline_best": "Setup A",
+      "lower_change": -0.2625,
+      "lower_outcome": "Setup B",
+      "upper_change": null,
+      "upper_outcome": null
+    },
+    {
+      "circuit": "Circuit B",
+      "parameter": "air_density",
+      "baseline_best": "Setup A",
+      "lower_change": null,
+      "lower_outcome": null,
+      "upper_change": 0.355,
+      "upper_outcome": "Setup B"
+    },
+    {
+      "circuit": "Circuit B",
+      "parameter": "reference_area",
+      "baseline_best": "Setup A",
+      "lower_change": null,
+      "lower_outcome": null,
+      "upper_change": 0.355,
+      "upper_outcome": "Setup B"
+    },
+    {
+      "circuit": "Circuit B",
+      "parameter": "drag_coefficient",
+      "baseline_best": "Setup A",
+      "lower_change": null,
+      "lower_outcome": null,
+      "upper_change": null,
+      "upper_outcome": null
+    },
+    {
+      "circuit": "Circuit B",
+      "parameter": "downforce_coefficient",
+      "baseline_best": "Setup A",
+      "lower_change": null,
+      "lower_outcome": null,
+      "upper_change": 0.355,
+      "upper_outcome": "Setup B"
+    },
+    {
+      "circuit": "Circuit B",
+      "parameter": "lateral_acceleration",
+      "baseline_best": "Setup A",
+      "lower_change": null,
+      "lower_outcome": null,
+      "upper_change": 0.355,
+      "upper_outcome": "Setup B"
+    },
+    {
+      "circuit": "Circuit C",
+      "parameter": "friction",
+      "baseline_best": "Setup B",
+      "lower_change": -0.2575,
+      "lower_outcome": "none eligible",
+      "upper_change": null,
+      "upper_outcome": null
+    },
+    {
+      "circuit": "Circuit C",
+      "parameter": "mass",
+      "baseline_best": "Setup B",
+      "lower_change": null,
+      "lower_outcome": null,
+      "upper_change": null,
+      "upper_outcome": null
+    },
+    {
+      "circuit": "Circuit C",
+      "parameter": "air_density",
+      "baseline_best": "Setup B",
+      "lower_change": -0.44,
+      "lower_outcome": "Setup A",
+      "upper_change": null,
+      "upper_outcome": null
+    },
+    {
+      "circuit": "Circuit C",
+      "parameter": "reference_area",
+      "baseline_best": "Setup B",
+      "lower_change": -0.44,
+      "lower_outcome": "Setup A",
+      "upper_change": null,
+      "upper_outcome": null
+    },
+    {
+      "circuit": "Circuit C",
+      "parameter": "drag_coefficient",
+      "baseline_best": "Setup B",
+      "lower_change": null,
+      "lower_outcome": null,
+      "upper_change": null,
+      "upper_outcome": null
+    },
+    {
+      "circuit": "Circuit C",
+      "parameter": "downforce_coefficient",
+      "baseline_best": "Setup B",
+      "lower_change": -0.44,
+      "lower_outcome": "Setup A",
+      "upper_change": null,
+      "upper_outcome": null
+    },
+    {
+      "circuit": "Circuit C",
+      "parameter": "lateral_acceleration",
+      "baseline_best": "Setup B",
+      "lower_change": -0.44,
+      "lower_outcome": "Setup A",
+      "upper_change": null,
+      "upper_outcome": null
+    }
+  ],
+  "monte_carlo": {
+    "samples_per_circuit": 5000,
+    "uncertainty": {
+      "friction": 0.1,
+      "mass": 0.02,
+      "air_density": 0.05,
+      "reference_area": 0.02,
+      "drag_coefficient": 0.05,
+      "downforce_coefficient": 0.05,
+      "lateral_acceleration": 0.1
+    },
+    "circuits": {
+      "Circuit A": {
+        "baseline_best": "Setup A",
+        "baseline_best_kept": 1.0,
+        "baseline_best_kept_ci95": [
+          0.9992322980549431,
+          1.0
+        ],
+        "top_choice_infeasible": {
+          "ungated": 0.0,
+          "drag-only": 0.0,
+          "downforce-only": 0.0,
+          "efficiency-only": 0.0
+        }
+      },
+      "Circuit B": {
+        "baseline_best": "Setup A",
+        "baseline_best_kept": 0.7836,
+        "baseline_best_kept_ci95": [
+          0.7719705568369849,
+          0.7947940026197787
+        ],
+        "top_choice_infeasible": {
+          "ungated": 0.0,
+          "drag-only": 0.0,
+          "downforce-only": 0.0,
+          "efficiency-only": 0.0
+        }
+      },
+      "Circuit C": {
+        "baseline_best": "Setup B",
+        "baseline_best_kept": 0.9884,
+        "baseline_best_kept_ci95": [
+          0.9850346321900791,
+          0.991015476549989
+        ],
+        "top_choice_infeasible": {
+          "ungated": 0.0,
+          "drag-only": 0.0,
+          "downforce-only": 0.0,
+          "efficiency-only": 0.0
+        }
+      }
+    },
+    "h1_demand_range": [
+      10.0,
+      30.0
+    ],
+    "h1": {
+      "Circuit A": {
+        "top_choice_infeasible": {
+          "ungated": [
+            0.0,
+            0.0,
+            0.0007677019450571244
+          ],
+          "drag-only": [
+            0.0,
+            0.0,
+            0.0007677019450571244
+          ],
+          "downforce-only": [
+            0.0,
+            0.0,
+            0.0007677019450571244
+          ],
+          "efficiency-only": [
+            0.0,
+            0.0,
+            0.0007677019450571244
+          ]
+        },
+        "avoidable": {
+          "ungated": [
+            0.0,
+            0.0,
+            0.0007677019450571244
+          ],
+          "drag-only": [
+            0.0,
+            0.0,
+            0.0007677019450571244
+          ],
+          "downforce-only": [
+            0.0,
+            0.0,
+            0.0007677019450571244
+          ],
+          "efficiency-only": [
+            0.0,
+            0.0,
+            0.0007677019450571244
+          ]
+        },
+        "no_setup_feasible": 0.0
+      },
+      "Circuit B": {
+        "top_choice_infeasible": {
+          "ungated": [
+            0.037,
+            0.032113277569115785,
+            0.04259761443200712
+          ],
+          "drag-only": [
+            0.1618,
+            0.15185259351835162,
+            0.17226668007728507
+          ],
+          "downforce-only": [
+            0.0012,
+            0.0005500831677591556,
+            0.002615776292629832
+          ],
+          "efficiency-only": [
+            0.055,
+            0.049015647769374275,
+            0.06166760696172658
+          ]
+        },
+        "avoidable": {
+          "ungated": [
+            0.0358,
+            0.03099625002291001,
+            0.041316484462881026
+          ],
+          "drag-only": [
+            0.1606,
+            0.15068411573800924,
+            0.17103700034229555
+          ],
+          "downforce-only": [
+            0.0,
+            0.0,
+            0.0007677019450571244
+          ],
+          "efficiency-only": [
+            0.0538,
+            0.04788174698389211,
+            0.06040335023187689
+          ]
+        },
+        "no_setup_feasible": 0.0012
+      },
+      "Circuit C": {
+        "top_choice_infeasible": {
+          "ungated": [
+            0.3456,
+            0.3325413554347524,
+            0.35889571092588135
+          ],
+          "drag-only": [
+            0.5006,
+            0.48674583192906523,
+            0.5144532468286009
+          ],
+          "downforce-only": [
+            0.3456,
+            0.3325413554347524,
+            0.35889571092588135
+          ],
+          "efficiency-only": [
+            0.4006,
+            0.3870988967923484,
+            0.41425372235432906
+          ]
+        },
+        "avoidable": {
+          "ungated": [
+            0.0,
+            0.0,
+            0.0007677019450571244
+          ],
+          "drag-only": [
+            0.155,
+            0.1452339094802774,
+            0.16529580486181208
+          ],
+          "downforce-only": [
+            0.0,
+            0.0,
+            0.0007677019450571244
+          ],
+          "efficiency-only": [
+            0.055,
+            0.049015647769374275,
+            0.06166760696172658
+          ]
+        },
+        "no_setup_feasible": 0.3456
+      }
+    }
+  },
+  "demand_sweep": {
+    "points": 243,
+    "share_top_choice_infeasible": {
+      "ungated": 0.11522633744855967,
+      "drag-only": 0.2222222222222222,
+      "downforce-only": 0.11522633744855967,
+      "efficiency-only": 0.11522633744855967
+    },
+    "share_top_choice_infeasible_avoidable": {
+      "ungated": 0.0,
+      "drag-only": 0.10699588477366255,
+      "downforce-only": 0.0,
+      "efficiency-only": 0.0
+    },
+    "share_no_setup_eligible": 0.11522633744855967
+  },
+  "runtime_s": 16.066585614000132
+}

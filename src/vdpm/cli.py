@@ -3,6 +3,7 @@
 Commands:
     table2   Recompute the manuscript's Table 2 and compare with the printed values.
     rank     Rank the manuscript's setups (or setups from a CSV) on a circuit.
+    research Run every experiment; write tables, figures and a report.
     golden   Write the cross-implementation golden test cases.
 """
 
@@ -91,6 +92,20 @@ def _cmd_rank(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_research(args: argparse.Namespace) -> int:
+    try:
+        from .research.run import run_all
+    except ImportError as exc:  # pragma: no cover - depends on optional extras
+        print(
+            f"The research suite needs NumPy and Matplotlib: pip install 'vdpm[research]' ({exc})"
+        )
+        return 2
+    run_all(
+        args.out, samples=args.samples, seed=args.seed, browser_engine_output=args.browser_output
+    )
+    return 0
+
+
 def _cmd_golden(args: argparse.Namespace) -> int:
     count = write_golden_cases(args.out)
     print(f"Wrote {count} golden cases to {args.out}")
@@ -114,6 +129,13 @@ def main(argv: Sequence[str] | None = None) -> int:
     p_rank.add_argument("--gate", choices=["strict", "none"], default="strict")
     p_rank.add_argument("--normalisation", choices=["ratio", "minmax"], default="ratio")
     p_rank.set_defaults(func=_cmd_rank)
+
+    p_res = sub.add_parser("research", help="run every experiment and write tables and figures")
+    p_res.add_argument("--out", default="results")
+    p_res.add_argument("--samples", type=int, default=5000)
+    p_res.add_argument("--seed", type=int, default=20261122)
+    p_res.add_argument("--browser-output", help="browser-engine golden output to compare against")
+    p_res.set_defaults(func=_cmd_research)
 
     p_golden = sub.add_parser("golden", help="write golden test cases")
     p_golden.add_argument("--out", default="golden/cases.json")
