@@ -1,0 +1,45 @@
+{
+  "project": "VDPM-RaceTwin",
+  "version": "0.1.0",
+  "repository": "https://github.com/Ey4d55/VDPM",
+  "dashboard": "https://ey4d55.github.io/VDPM/",
+  "python": {
+    "runtime": { "name": "CPython", "used": "3.13.18", "required": ">=3.10" },
+    "runtime_dependencies": [],
+    "optional": {
+      "research": { "numpy": "2.5.3", "matplotlib": "3.11.2" },
+      "dev": { "pytest": "9.1.1", "hypothesis": "6.170.17", "ruff": "0.16.9", "mypy": "2.3.1" }
+    },
+    "build_backend": "hatchling>=1.24"
+  },
+  "web": {
+    "runtime": { "name": "Node.js", "used": "22.23.5", "required": ">=22.12" },
+    "language": { "typescript": "5.9.3" },
+    "dependencies": {
+      "react": "19.3.1",
+      "react-dom": "19.3.1",
+      "d3-scale": "4.0.3",
+      "d3-shape": "3.2.1",
+      "d3-array": "3.2.5",
+      "katex": "0.16.47",
+      "@fontsource-variable/inter": "5.3.0",
+      "@fontsource-variable/jetbrains-mono": "5.3.0"
+    },
+    "dev_dependencies": {
+      "vite": "8.3.8",
+      "@vitejs/plugin-react": "6.3.0",
+      "vitest": "5.1.1"
+    }
+  },
+  "infrastructure": {
+    "ci": "GitHub Actions",
+    "hosting": "GitHub Pages (static)",
+    "workflows": [".github/workflows/python.yml", ".github/workflows/pages.yml"]
+  },
+  "verification": {
+    "golden_cases": { "corner": 400, "circuit_rankings": 72 },
+    "values_compared": 29080,
+    "max_relative_difference": 0,
+    "tolerance": 1e-12
+  }
+}

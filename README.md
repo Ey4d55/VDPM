@@ -31,7 +31,7 @@ golden/              Golden cases (Python) and the browser engine's outputs
 results/             Output of `vdpm research`: report, tables, figures
 web/                 The RaceTwin dashboard (React, TypeScript, Vite)
 data/                Example input files in every supported format
-docs/                Method, reproducibility and data formats
+docs/                Method, reproducibility, data formats, tech stack
 ```
 
 ## Quick start
