@@ -1,0 +1,10 @@
+name,kind,length_m,radius_m,speed_mps,grade
+Main straight,straight,820,,78,0
+Turn 1,corner,95,55,29,0
+Back straight,straight,610,,74,0
+Turn 2,corner,180,140,46,0
+Short straight,straight,240,,62,0
+Turn 3,corner,120,80,35,0
+Esses,corner,210,210,55,0
+Final straight,straight,450,,70,0
+Turn 4,corner,140,95,38,0
