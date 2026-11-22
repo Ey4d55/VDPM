@@ -18,6 +18,7 @@ VDPM-RaceTwin has two parts that implement the same model independently: a Pytho
 | Model, browser implementation | TypeScript 5.9 | Independent port of the model, checked against the Python golden cases |
 | User interface | React 19 | The seven dashboard workspaces |
 | Charts | D3 (d3-scale, d3-shape) with hand-written SVG | Every chart, the lap ring and the decision map |
+| 3D track twin | three.js | Schematic 3D lap with the car, grip columns and friction circle |
 | Equations | KaTeX | Typeset equations in the Method workspace |
 | Typography | Inter, JetBrains Mono (self-hosted variable fonts) | Interface text and numbers |
 | Build and tests | Vite 8, Vitest 5, Node.js 22 | Development server, static build, engine tests |
@@ -38,6 +39,8 @@ The Python package `vdpm` is the reference. It writes golden cases (400 corner e
 **React for the interface.** It is the most widely used UI library, so the code stays maintainable by others, and its component model suits seven workspaces that share one set of inputs and recompute on every change.
 
 **D3 primitives with SVG, not a charting library.** Research figures need precise control over scales, annotations, symbols and export. Using D3 only for scales and path geometry, with SVG written by hand, gives that control, keeps the bundle small, and lets every chart be exported as vector SVG or high-resolution PNG.
+
+**three.js for the track twin.** The most widely used WebGL library, with no build-time tooling and a stable API. It is loaded only when the twin is shown, so the rest of the dashboard stays fast.
 
 **KaTeX for equations.** It renders TeX quickly in the browser without a network service, so the Method workspace shows the same notation as the manuscript.
 

@@ -26,6 +26,7 @@ Exact versions used to produce the published results (vdpm 0.1.0, seed 20261122)
 | d3-scale | 4.0.3 | Chart scales |
 | d3-shape | 3.2.1 | Line and area geometry |
 | d3-array | 3.2.5 | Array helpers used by d3-scale (declared directly) |
+| three | 0.187.0 | 3D track twin (WebGL) |
 | KaTeX | 0.16.47 | Equation typesetting |
 | @fontsource-variable/inter | 5.3.0 | Interface font, self-hosted |
 | @fontsource-variable/jetbrains-mono | 5.3.0 | Monospace font for numbers and code |

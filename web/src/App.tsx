@@ -43,6 +43,7 @@ import { Research } from "./workspaces/Research";
 import { Safety } from "./workspaces/Safety";
 import { Setups } from "./workspaces/Setups";
 import { WhatIf } from "./workspaces/WhatIf";
+import { TrackTwin, useRail } from "./twin";
 
 const TABS: { id: string; label: string; icon: ComponentType<SVGProps<SVGSVGElement>>; view: ComponentType }[] = [
   { id: "decision", label: "Decision", icon: IconDecision, view: Decision },
@@ -97,6 +98,7 @@ export function App() {
 
   const ctx = useMemo(() => ({ state, dispatch, derived, theme }), [state, derived, theme]);
   const active = TABS.find((t) => t.id === tab) ?? TABS[0]!;
+  const rail = useRail();
   const View = active.view;
 
   const exportScenario = () => {
@@ -184,10 +186,19 @@ export function App() {
                 </Callout>
               </div>
             )}
-            <View key={active.id} />
-            <footer className="footer-note">
-              VDPM-RaceTwin {APP_VERSION}. Equations from Section 4 of the VDPM manuscript; default inputs from its Table 1. Results are computed in your browser; nothing is uploaded.
-            </footer>
+            <div className="main-row">
+              <div className="main-col">
+                <View key={active.id} />
+                <footer className="footer-note">
+                  VDPM-RaceTwin {APP_VERSION}. Equations from Section 4 of the VDPM manuscript; default inputs from its Table 1. Results are computed in your browser; nothing is uploaded.
+                </footer>
+              </div>
+              {rail && (
+                <aside className="twin-rail" aria-label="Track twin">
+                  <TrackTwin variant="rail" />
+                </aside>
+              )}
+            </div>
           </main>
         </div>
       </div>

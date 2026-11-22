@@ -134,4 +134,5 @@ The H1 comparison additionally draws `a_ref` uniformly from 10 to 30 m/s², so t
 - All downforce is assumed to load the tyres. Aero balance, ride-height and yaw sensitivity, lateral and longitudinal load transfer, banking, kerbs and elevation are not modelled.
 - Setups are described only by `C_D` and `C_DF` on a common reference area. Coefficients from CFD or the wind tunnel must use that area.
 - The gate is binary: a setup that fails one corner by 0.1 % is excluded. The margins show how close each setup is.
+- The dashboard's 3D track twin draws a schematic layout: corner order, lengths and radii come from the circuit data, all corners turn the same way, their turning angles are scaled to close the lap and straight lengths are adjusted by the smallest weighted least-squares change that closes it. Every force it shows is the model's value at the segment's reference speed.
 - VDPM is a screening tool for narrowing down candidate setups before detailed simulation and testing, not a replacement for them.

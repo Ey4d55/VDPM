@@ -5,7 +5,7 @@ Physics-constrained, circuit-aware screening of Formula 1 aerodynamic setups.
 VDPM-RaceTwin is the software that accompanies the manuscript *VDPM: Vehicle Dynamics Performance Metric*. It turns the manuscript's model into two things:
 
 - **`vdpm`**, a Python package with no runtime dependencies. It is the reference implementation of the model, the feasibility gate and the VDPM score, plus a research suite that regenerates every table and figure used as evidence.
-- **The RaceTwin dashboard**, a static web application that runs an independent TypeScript implementation of the same model in the browser. Its seven views show the recommendation, the circuit, the forces at a single corner, the setups, what-if analysis, the verification evidence and the method.
+- **The RaceTwin dashboard**, a static web application that runs an independent TypeScript implementation of the same model in the browser. Its seven views show the recommendation, the circuit, the forces at a single corner, the setups, what-if analysis, the verification evidence and the method. A 3D track twin (three.js) drives the selected setup around the lap and shows, at every corner, the grip available against the grip the corner demands.
 
 **Live dashboard:** https://ey4d55.github.io/VDPM/ · **Source:** https://github.com/Ey4d55/VDPM
 

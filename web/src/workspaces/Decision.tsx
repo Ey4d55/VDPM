@@ -18,6 +18,7 @@ import {
 import { fmt, kN, pct } from "../format";
 import { richNode } from "../components/Sym";
 import { useApp } from "../state";
+import { TrackTwin, useRail } from "../twin";
 import { FeasibleBadge, SetupName, WsHeader } from "./common";
 
 const METHOD_TEXT: Record<string, { label: string; criterion: string }> = {
@@ -48,6 +49,7 @@ function FindingIcon({ f }: { f: Finding }) {
 export function Decision() {
   const { state, derived, theme } = useApp();
   const { ranking, circuit, weights, colours, findings } = derived;
+  const rail = useRail();
 
   const baselines = useMemo(() => {
     if (!ranking) return [];
@@ -201,6 +203,8 @@ export function Decision() {
         </div>
       </section>
       )}
+
+      {!rail && <TrackTwin variant="inline" />}
 
       <Card title="Ranking" subtitle={`Ratio-to-best penalties${ranking.normalisation === "minmax" ? " (min–max normalised)" : ""}; ${ranking.gate === "strict" ? "strict feasibility gate" : "gate switched off"}.`}>
         <div className="table-wrap">
