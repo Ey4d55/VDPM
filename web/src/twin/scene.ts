@@ -11,7 +11,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { CSS2DObject, CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 import { availableLateralGrip, downforce, drag, type CircuitEvaluation, type Environment, type Vehicle } from "../engine";
 import type { ChartTheme } from "../theme";
-import { animationSpeed, centreline, poseAt, type Layout, type LayoutSegment } from "./layout";
+import { animationSpeed, centreline, pointOn, poseAt, type Layout, type LayoutSegment } from "./layout";
 
 export type CameraMode = "orbit" | "chase" | "top";
 
@@ -230,6 +230,8 @@ export class TwinScene {
   private io: IntersectionObserver;
   private timeScale = 1;
   private userMoved = false;
+  private rot = 0;
+  private fitPoints: THREE.Vector3[] = [];
   private bounds = { minX: -SPAN / 2, maxX: SPAN / 2, minZ: -SPAN / 2, maxZ: SPAN / 2, height: 12 };
   onHud: ((h: TwinHud) => void) | null = null;
 
@@ -251,8 +253,8 @@ export class TwinScene {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
     this.controls.dampingFactor = 0.08;
-    this.controls.autoRotate = true;
-    this.controls.autoRotateSpeed = 0.35;
+    this.controls.autoRotate = false;
+    this.controls.autoRotateSpeed = 0.25;
     this.controls.maxPolarAngle = 1.38;
     this.controls.minDistance = 25;
     this.controls.maxDistance = 330;
@@ -337,7 +339,7 @@ export class TwinScene {
     this.mode = mode;
     this.controls.enabled = mode !== "chase";
     if (mode === "orbit") {
-      this.controls.autoRotate = true;
+      this.controls.autoRotate = false;
       this.fitOrbit();
     } else if (mode === "top") {
       this.controls.autoRotate = false;
@@ -351,11 +353,14 @@ export class TwinScene {
   private fitOrbit(elevation = 0.56): void {
     const b = this.bounds;
     const top = elevation > 1.5;
-    const azimuth = top ? 0 : Math.atan2(this.camera.position.x, this.camera.position.z) || 0;
+    const portrait = this.camera.aspect < 1.05;
+    // Portrait panels look along the long axis, landscape panels across it.
+    const azimuth = top ? (portrait ? Math.PI / 2 : 0) : portrait ? Math.PI / 2 + 0.35 : 0.3;
+    if (!top && portrait) elevation = Math.max(elevation, 0.72);
     const target = new THREE.Vector3((b.minX + b.maxX) / 2, top ? 0 : 2, (b.minZ + b.maxZ) / 2);
-    const pts: THREE.Vector3[] = [];
-    for (const x of [b.minX, b.maxX])
-      for (const z of [b.minZ, b.maxZ]) for (const y of [0, top ? 0 : b.height]) pts.push(new THREE.Vector3(x, y, z));
+    const pts: THREE.Vector3[] = this.fitPoints.length
+      ? this.fitPoints.map((p) => (top ? p.clone().setY(0) : p))
+      : [b.minX, b.maxX].flatMap((x) => [b.minZ, b.maxZ].map((z) => new THREE.Vector3(x, 0, z)));
     const dir = new THREE.Vector3(Math.cos(elevation) * Math.sin(azimuth), Math.sin(elevation), Math.cos(elevation) * Math.cos(azimuth) + (top ? 1e-4 : 0)).normalize();
     const fits = (d: number) => {
       this.camera.position.copy(target).addScaledVector(dir, d);
@@ -440,22 +445,44 @@ export class TwinScene {
     this.hemi.intensity = dark ? 1.0 : 1.5;
     this.sun.intensity = dark ? 2.0 : 2.4;
 
-    // Fit the plan into the scene.
+    // Fit the plan into the scene, long axis along world X.
     const pts = centreline(d.layout, Math.max(2, d.layout.lapLength / 900));
+    let mx = 0;
+    let my = 0;
+    for (const p of pts) {
+      mx += p.x / pts.length;
+      my += p.y / pts.length;
+    }
+    let sxx = 0;
+    let syy = 0;
+    let sxy = 0;
+    for (const p of pts) {
+      sxx += (p.x - mx) ** 2;
+      syy += (p.y - my) ** 2;
+      sxy += (p.x - mx) * (p.y - my);
+    }
+    const rot = -0.5 * Math.atan2(2 * sxy, sxx - syy);
+    this.rot = rot;
+    const cr = Math.cos(rot);
+    const sr = Math.sin(rot);
+    const rx = (x: number, y: number) => cr * x - sr * y;
+    const ry = (x: number, y: number) => sr * x + cr * y;
     let minX = Infinity;
     let maxX = -Infinity;
     let minY = Infinity;
     let maxY = -Infinity;
     for (const p of pts) {
-      minX = Math.min(minX, p.x);
-      maxX = Math.max(maxX, p.x);
-      minY = Math.min(minY, p.y);
-      maxY = Math.max(maxY, p.y);
+      const X = rx(p.x, p.y);
+      const Y = ry(p.x, p.y);
+      minX = Math.min(minX, X);
+      maxX = Math.max(maxX, X);
+      minY = Math.min(minY, Y);
+      maxY = Math.max(maxY, Y);
     }
     const k = SPAN / Math.max(maxX - minX, maxY - minY, 1);
     const ox = (minX + maxX) / 2;
     const oy = (minY + maxY) / 2;
-    this.toWorld = (x, y) => new THREE.Vector3((x - ox) * k, 0, -(y - oy) * k);
+    this.toWorld = (x, y) => new THREE.Vector3((rx(x, y) - ox) * k, 0, -(ry(x, y) - oy) * k);
     const pad = TRACK_WIDTH;
     this.bounds = {
       minX: (minX - ox) * k - pad,
@@ -490,13 +517,15 @@ export class TwinScene {
       const p = pts[i]!;
       const c = this.toWorld(p.x, p.y);
       // Plan normal to the left of travel: (-sin h, cos h) -> world (-sin h, 0, -cos h).
-      const nx = -Math.sin(p.heading);
-      const nz = -Math.cos(p.heading);
+      const nx = -Math.sin(p.heading + rot);
+      const nz = -Math.cos(p.heading + rot);
       const nrm = new THREE.Vector3(nx, 0, nz);
       normals.push(nrm);
       left.push(c.clone().addScaledVector(nrm, TRACK_WIDTH / 2));
       right.push(c.clone().addScaledVector(nrm, -TRACK_WIDTH / 2));
     }
+    this.fitPoints = [];
+    for (let i = 0; i < n; i += Math.max(1, Math.floor(n / 90))) this.fitPoints.push(left[i]!.clone(), right[i]!.clone());
     const ribbon = (a: THREE.Vector3[], b: THREE.Vector3[], y: number, colours?: THREE.Color[]) => {
       const pos: number[] = [];
       const col: number[] = [];
@@ -564,11 +593,11 @@ export class TwinScene {
       new THREE.MeshBasicMaterial({ map: checkerTexture() }),
     );
     sf.rotation.x = -Math.PI / 2;
-    sf.rotation.z = p0.heading;
+    sf.rotation.z = p0.heading + rot;
     sf.position.copy(this.toWorld(p0.x, p0.y)).setY(0.045);
     this.content.add(sf);
     const gantryMat = new THREE.MeshStandardMaterial({ color: dark ? "#3a4356" : "#9aa2b2", roughness: 0.5 });
-    const nrm0 = new THREE.Vector3(-Math.sin(p0.heading), 0, -Math.cos(p0.heading));
+    const nrm0 = new THREE.Vector3(-Math.sin(p0.heading + rot), 0, -Math.cos(p0.heading + rot));
     for (const sgn of [1, -1]) {
       const post = new THREE.Mesh(new THREE.BoxGeometry(0.22, 4.2, 0.22), gantryMat);
       post.position.copy(this.toWorld(p0.x, p0.y)).addScaledVector(nrm0, sgn * (TRACK_WIDTH / 2 + 0.9)).setY(2.1);
@@ -577,7 +606,7 @@ export class TwinScene {
     }
     const beam = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.5, TRACK_WIDTH + 2.1), gantryMat);
     beam.position.copy(this.toWorld(p0.x, p0.y)).setY(4.2);
-    beam.rotation.y = p0.heading;
+    beam.rotation.y = p0.heading + rot;
     beam.castShadow = true;
     this.content.add(beam);
 
@@ -667,6 +696,7 @@ export class TwinScene {
       el.style.setProperty("--mc", marginColour(t, m));
       const label = new CSS2DObject(el);
       label.position.copy(base).setY(Math.max(hg, hd) + 1.6);
+      this.fitPoints.push(base.clone().setY(Math.max(hg, hd) + 3.2));
       label.center.set(0.5, 1);
       this.content.add(label);
       if (isBinding) {
@@ -695,9 +725,7 @@ export class TwinScene {
   }
 
   private apex(seg: LayoutSegment): THREE.Vector3 {
-    const a = seg.heading0 + seg.turn * 0.5;
-    const r = seg.radius ?? 0;
-    const p = { x: seg.cx + r * Math.sin(a), y: seg.cy - r * Math.cos(a) };
+    const p = pointOn(seg, 0.5);
     const f = (seg.start + seg.length / 2) / this.data!.layout.lapLength;
     return this.toWorld(p.x - f * this.data!.layout.residualX, p.y - f * this.data!.layout.residualY);
   }
@@ -742,7 +770,7 @@ export class TwinScene {
     const pos = this.toWorld(pose.x, pose.y);
     const car = this.car.group;
     car.position.copy(pos).setY(0.03);
-    car.rotation.y = pose.heading;
+    car.rotation.y = pose.heading + this.rot;
     const f = this.forces[d.driving]![pose.segment.index]!;
 
     // Friction circle: radius = available grip, eased so speed changes read smoothly.
@@ -773,13 +801,13 @@ export class TwinScene {
     this.downArrow.group.position.copy(pos).setY(1.7 + dfLen);
     const dragHolder = this.scene.getObjectByName("dragHolder")!;
     dragHolder.position.copy(pos).setY(0.55);
-    dragHolder.rotation.y = pose.heading;
+    dragHolder.rotation.y = pose.heading + this.rot;
     this.dragArrow.group.position.set(-2.4, 0, 0);
     this.dragArrow.set(f.drag * this.dragScale);
 
     // Camera follow.
     if (this.mode === "chase") {
-      const back = new THREE.Vector3(Math.cos(pose.heading), 0, -Math.sin(pose.heading));
+      const back = new THREE.Vector3(Math.cos(pose.heading + this.rot), 0, -Math.sin(pose.heading + this.rot));
       const want = pos.clone().addScaledVector(back, -14).setY(6.2);
       const k = dt === 0 ? 1 : Math.min(1, dt * 3.2);
       this.camera.position.lerp(want, k);

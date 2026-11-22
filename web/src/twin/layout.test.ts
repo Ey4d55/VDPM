@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { referenceCircuit } from "../engine";
-import { animationSpeed, buildLayout, poseAt } from "./layout";
+import { animationSpeed, buildLayout, poseAt, scoreLayout } from "./layout";
 
 describe("track twin layout", () => {
   for (const key of ["A", "B", "C"] as const) {
-    it(`closes the lap of Circuit ${key} and keeps every radius`, () => {
+    it(`lays out Circuit ${key} as a closed, non-crossing lap that keeps every radius`, () => {
       const c = referenceCircuit(key, 15);
       const l = buildLayout(c);
       expect(l.residual).toBeLessThan(1e-6 * l.lapLength);
@@ -16,6 +16,12 @@ describe("track twin layout", () => {
         expect(s.drawnLength).toBeGreaterThan(0);
       });
       expect(l.lapLength).toBeCloseTo(c.segments.reduce((a, s) => a + s.length, 0), 9);
+      // Neither crosses nor touches itself (any overlap adds at least 100 to the score).
+      expect(scoreLayout(l)).toBeLessThan(10);
+      // Turns both ways, like a real circuit.
+      expect(l.segments.some((s) => s.turn < 0)).toBe(true);
+      // Deterministic.
+      expect(buildLayout(referenceCircuit(key, 15)).segments.map((s) => s.turn)).toEqual(l.segments.map((s) => s.turn));
     });
   }
 

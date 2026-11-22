@@ -270,7 +270,7 @@ export default function TrackTwin({ variant }: { variant: "rail" | "inline" }) {
           "The ring under the car is the grip available at that speed, μ(mg + F_DF), and grows with downforce. The arrow is the lateral force the corner demands, mv²/r. A corner is feasible when the arrow stays inside the ring. The columns show the same at every corner; labels give the safety margin M.",
         )}{" "}
         <span className="twin-note">
-          Schematic layout: corner order, lengths and radii from the circuit data, with turning angles scaled to close the lap. Forces are the
+          Schematic layout: corner order and radii come from the circuit data; turn directions and angles are chosen as on real circuits, since the data hold no coordinates. Forces are the
           model's values at each segment's reference speed.
         </span>
       </footer>

@@ -3,14 +3,16 @@
  *
  * The circuit data hold the order, length, radius and reference speed of each
  * segment but no coordinates or turn directions. To draw a closed lap we keep
- * what the model uses and adjust only what it does not:
+ * what the model uses and choose only what it does not:
  *
  *   - every corner is drawn with its true radius r (the quantity in F_c = m v^2 / r);
- *   - all corners turn the same way, and their turning angles keep the
- *     circuit's proportions (theta_i proportional to L_i / r_i) but are scaled
- *     to sum to one full turn, so that the lap can close;
+ *   - turn directions and angles follow real circuits: tight corners turn
+ *     further than fast ones and some corners turn the other way, with the
+ *     signed angles summing to one full turn;
  *   - straight lengths are adjusted by the smallest weighted least-squares
- *     change that closes the loop exactly, keeping every heading.
+ *     change that closes the loop exactly, keeping every heading;
+ *   - a deterministic search keeps the candidate that neither crosses nor
+ *     touches itself and has a circuit-like footprint.
  *
  * Positions are therefore schematic; the physics shown on the layout always
  * uses the circuit's own segment lengths, radii and speeds.
@@ -62,59 +64,38 @@ export interface Pose {
 
 const TAU = 2 * Math.PI;
 
-export function buildLayout(circuit: Circuit): Layout {
+/** Lay out the lap for given signed turning angles (positive = left). */
+export function layoutFromTurns(circuit: Circuit, turns: number[]): Layout {
   const segs = circuit.segments;
   const lapLength = segs.reduce((a, s) => a + s.length, 0);
-  const cornerWeights = segs.map((s) => (s.kind === "corner" && s.radius ? s.length / s.radius : 0));
-  const totalWeight = cornerWeights.reduce((a, b) => a + b, 0);
-  const nCorners = segs.filter((s) => s.kind === "corner").length;
-  const turns = segs.map((s, i) =>
-    s.kind !== "corner" ? 0 : totalWeight > 0 ? (TAU * cornerWeights[i]!) / totalWeight : TAU / Math.max(1, nCorners),
-  );
-
-  // Headings at the start of each segment (counter-clockwise lap).
   const headings: number[] = [];
   let h = 0;
   for (let i = 0; i < segs.length; i++) {
     headings.push(h);
     h += turns[i]!;
   }
-
-  // Displacement of each corner arc, and the straight directions.
-  let ex = 0;
-  let ey = 0;
-  const straightIdx: number[] = [];
-  for (let i = 0; i < segs.length; i++) {
-    const s = segs[i]!;
-    if (s.kind === "corner") {
-      const r = s.radius ?? 0;
-      const a0 = headings[i]!;
-      const a1 = a0 + turns[i]!;
-      ex += r * (Math.sin(a1) - Math.sin(a0));
-      ey += r * (-Math.cos(a1) + Math.cos(a0));
-    } else {
-      straightIdx.push(i);
-      ex += s.length * Math.cos(headings[i]!);
-      ey += s.length * Math.sin(headings[i]!);
-    }
-  }
+  const straightIdx = segs.flatMap((s, i) => (s.kind === "corner" ? [] : [i]));
+  const arc = (i: number): [number, number] => {
+    const r = segs[i]!.radius ?? 0;
+    const a0 = headings[i]!;
+    const a1 = a0 + turns[i]!;
+    const side = Math.sign(turns[i]!) || 1;
+    return [side * r * (Math.sin(a1) - Math.sin(a0)), side * r * (-Math.cos(a1) + Math.cos(a0))];
+  };
 
   // Close the loop: l_j = l0_j (1 + u_j . lambda), minimising sum l0 (u.lambda)^2,
   // with straights that would shrink below 15 % held at that floor.
   const lengths = segs.map((s) => s.length);
   const floor = 0.15;
   const fixed = new Set<number>();
-  for (let iter = 0; iter < 6 && straightIdx.length > 0; iter++) {
+  for (let iter = 0; iter < 8 && straightIdx.length > 0; iter++) {
     let gx = 0;
     let gy = 0;
     for (let i = 0; i < segs.length; i++) {
-      const s = segs[i]!;
-      if (s.kind === "corner") {
-        const r = s.radius ?? 0;
-        const a0 = headings[i]!;
-        const a1 = a0 + turns[i]!;
-        gx += r * (Math.sin(a1) - Math.sin(a0));
-        gy += r * (-Math.cos(a1) + Math.cos(a0));
+      if (segs[i]!.kind === "corner") {
+        const [dx, dy] = arc(i);
+        gx += dx;
+        gy += dy;
       } else {
         gx += lengths[i]! * Math.cos(headings[i]!);
         gy += lengths[i]! * Math.sin(headings[i]!);
@@ -165,10 +146,11 @@ export function buildLayout(circuit: Circuit): Layout {
     const turn = turns[i]!;
     const corner = s.kind === "corner";
     const r = s.radius ?? 0;
+    const side = Math.sign(turn) || 1;
     const drawnLength = corner ? r * Math.abs(turn) : lengths[i]!;
     if (!corner) maxChange = Math.max(maxChange, Math.abs(lengths[i]! / s.length - 1));
-    const cx = corner ? x - r * Math.sin(heading0) : x;
-    const cy = corner ? y + r * Math.cos(heading0) : y;
+    const cx = corner ? x - side * r * Math.sin(heading0) : x;
+    const cy = corner ? y + side * r * Math.cos(heading0) : y;
     out.push({
       index: i,
       kind: s.kind,
@@ -187,8 +169,8 @@ export function buildLayout(circuit: Circuit): Layout {
       cy,
     });
     if (corner) {
-      x = cx + r * Math.sin(heading0 + turn);
-      y = cy - r * Math.cos(heading0 + turn);
+      x = cx + side * r * Math.sin(heading0 + turn);
+      y = cy - side * r * Math.cos(heading0 + turn);
     } else {
       x += drawnLength * Math.cos(heading0);
       y += drawnLength * Math.sin(heading0);
@@ -198,11 +180,152 @@ export function buildLayout(circuit: Circuit): Layout {
   return { segments: out, lapLength, maxStraightChange: maxChange, residual: Math.hypot(x, y), residualX: x, residualY: y };
 }
 
+const TURN_CACHE = new Map<string, number[]>();
+
+/** Small deterministic PRNG, so a circuit always gets the same layout. */
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function hashString(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+
+/**
+ * Score a candidate layout: lower is better. Crossings and near-touches are
+ * heavily penalised; small changes to straights and a compact, circuit-like
+ * aspect ratio are preferred.
+ */
+export function scoreLayout(l: Layout): number {
+  if (l.residual > 1e-6 * l.lapLength) return Infinity;
+  const drawn = l.segments.reduce((a, s) => a + s.drawnLength, 0);
+  const n = 260;
+  const step = drawn / n;
+  const pts: [number, number, number][] = [];
+  let acc = 0;
+  for (const seg of l.segments) {
+    const k = Math.max(1, Math.round(seg.drawnLength / step));
+    for (let j = 0; j < k; j++) {
+      const p = pointOn(seg, j / k);
+      pts.push([p.x, p.y, acc + (j / k) * seg.drawnLength]);
+    }
+    acc += seg.drawnLength;
+  }
+  let minX = Infinity;
+  let maxX = -Infinity;
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (const [x, y] of pts) {
+    minX = Math.min(minX, x);
+    maxX = Math.max(maxX, x);
+    minY = Math.min(minY, y);
+    maxY = Math.max(maxY, y);
+  }
+  const w = maxX - minX;
+  const h = maxY - minY;
+  const span = Math.max(w, h);
+  const clear = 0.06 * span;
+  const arcGap = 3 * clear;
+  let penalty = 0;
+  for (let i = 0; i < pts.length; i++) {
+    for (let j = i + 1; j < pts.length; j++) {
+      const along = Math.min(pts[j]![2] - pts[i]![2], drawn - (pts[j]![2] - pts[i]![2]));
+      if (along < arcGap) continue;
+      const d = Math.hypot(pts[i]![0] - pts[j]![0], pts[i]![1] - pts[j]![1]);
+      if (d < clear) penalty += (clear - d) / clear;
+    }
+  }
+  const aspect = Math.max(w, h) / Math.max(1e-9, Math.min(w, h));
+  // Use of the bounding box: real circuits fill their footprint unevenly but not sparsely.
+  const fill = drawn / (w + h);
+  return penalty * 100 + l.maxStraightChange * 2 + Math.abs(aspect - 1.55) * 0.6 + Math.abs(fill - 2.6) * 0.3;
+}
+
+/**
+ * Plan layout used by the track twin. Corner radii and segment order come from
+ * the circuit; turn directions and angles are chosen as on real circuits
+ * (tight corners turn further than fast ones, and some corners turn the other
+ * way), from a deterministic search that rejects layouts that cross or touch.
+ */
+export function buildLayout(circuit: Circuit): Layout {
+  const segs = circuit.segments;
+  const corners = segs.flatMap((s, i) => (s.kind === "corner" && s.radius ? [i] : []));
+  const fallback = (): Layout => {
+    const w = segs.map((s) => (s.kind === "corner" && s.radius ? s.length / s.radius : 0));
+    const total = w.reduce((a, b) => a + b, 0);
+    return layoutFromTurns(
+      circuit,
+      segs.map((s, i) => (s.kind !== "corner" ? 0 : total > 0 ? (TAU * w[i]!) / total : TAU / Math.max(1, corners.length))),
+    );
+  };
+  if (corners.length < 3) return fallback();
+
+  const radii = corners.map((i) => segs[i]!.radius!);
+  const key = `${circuit.name}|${segs.map((s) => `${s.kind[0]}${s.length.toFixed(3)}:${s.radius ?? ""}`).join(",")}`;
+  const cached = TURN_CACHE.get(key);
+  if (cached) return layoutFromTurns(circuit, cached);
+  const rMin = Math.min(...radii);
+  const rMax = Math.max(...radii);
+  const deg = Math.PI / 180;
+  const rand = mulberry32(hashString(key));
+  let bestTurns: number[] | null = null;
+  let best: Layout | null = null;
+  let bestScore = Infinity;
+  const candidates = 360;
+  for (let c = 0; c < candidates; c++) {
+    const rightShare = 0.2 + 0.2 * rand();
+    const turns = segs.map(() => 0);
+    let pos = 0;
+    let neg = 0;
+    corners.forEach((i, k) => {
+      const rr = rMax > rMin ? (radii[k]! - rMin) / (rMax - rMin) : 0.5;
+      const mag = Math.min(175, Math.max(18, (150 - 115 * rr) * (0.7 + 0.6 * rand()))) * deg;
+      const right = rand() < rightShare;
+      turns[i] = right ? -mag : mag;
+      if (right) neg += mag;
+      else pos += mag;
+    });
+    if (pos <= 0) continue;
+    const scale = (TAU + neg) / pos;
+    if (scale < 0.55 || scale > 1.6) continue;
+    let ok = true;
+    for (const i of corners) {
+      if (turns[i]! > 0) {
+        turns[i] = turns[i]! * scale;
+        if (turns[i]! > 178 * deg) ok = false;
+      }
+    }
+    if (!ok) continue;
+    const l = layoutFromTurns(circuit, turns);
+    if (l.maxStraightChange > 0.85) continue;
+    const sc = scoreLayout(l);
+    if (sc < bestScore) {
+      bestScore = sc;
+      best = l;
+      bestTurns = turns;
+    }
+  }
+  if (!best || !bestTurns) return fallback();
+  if (TURN_CACHE.size > 32) TURN_CACHE.clear();
+  TURN_CACHE.set(key, bestTurns);
+  return best;
+}
+
 /** Point on a segment at fraction t of its drawn length. */
 export function pointOn(seg: LayoutSegment, t: number): { x: number; y: number; heading: number } {
   if (seg.kind === "corner" && seg.radius) {
     const a = seg.heading0 + seg.turn * t;
-    return { x: seg.cx + seg.radius * Math.sin(a), y: seg.cy - seg.radius * Math.cos(a), heading: a };
+    const side = Math.sign(seg.turn) || 1;
+    return { x: seg.cx + side * seg.radius * Math.sin(a), y: seg.cy - side * seg.radius * Math.cos(a), heading: a };
   }
   return {
     x: seg.x0 + seg.drawnLength * t * Math.cos(seg.heading0),
