@@ -47,6 +47,7 @@ The converged coefficient is the mean over the final fraction of samples (10 % b
 
 ```python
 from vdpm.cfd_io import read_openfoam_force_coeffs, converged_coefficients
+
 history = read_openfoam_force_coeffs("data/cfd_examples/synthetic_forceCoeffs.dat")
 print(converged_coefficients(history, "Cd", "Cl", window=0.1))
 ```
