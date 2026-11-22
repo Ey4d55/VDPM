@@ -7,6 +7,8 @@ VDPM-RaceTwin is the software that accompanies the manuscript *VDPM: Vehicle Dyn
 - **`vdpm`**, a Python package with no runtime dependencies. It is the reference implementation of the model, the feasibility gate and the VDPM score, plus a research suite that regenerates every table and figure used as evidence.
 - **The RaceTwin dashboard**, a static web application that runs an independent TypeScript implementation of the same model in the browser. Its seven views show the recommendation, the circuit, the forces at a single corner, the setups, what-if analysis, the verification evidence and the method.
 
+**Live dashboard:** https://ey4d55.github.io/VDPM/ · **Source:** https://github.com/Ey4d55/VDPM
+
 The two implementations agree bit for bit on 400 corner cases and 72 circuit rankings (29,080 values, maximum relative difference 0).
 
 ## Contents
@@ -60,7 +62,9 @@ npm test           # engine tests, including the golden cases
 npm run build      # static site in web/dist
 ```
 
-The built site is plain static files with relative paths. It can be served from any static host (GitHub Pages, Zenodo, a university server) or a sub-folder, and needs no backend: every calculation runs in the reader's browser and nothing is uploaded.
+The built site is plain static files with relative paths. Opening `web/dist/index.html` straight from disk does not work, because browsers block JavaScript modules on `file://` pages; serve the folder instead, for example with `npm run preview` or `python -m http.server` inside `web/dist`. The live dashboard is rebuilt and published to GitHub Pages on every push to `main` (`.github/workflows/pages.yml`).
+
+The built site It can be served from any static host (GitHub Pages, Zenodo, a university server) or a sub-folder, and needs no backend: every calculation runs in the reader's browser and nothing is uploaded.
 
 ## The model in brief
 
